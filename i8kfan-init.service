@@ -1,0 +1,13 @@
+[Unit]
+Description=Initialize Dell fan speed at boot
+After=dell-bios-fan-control.service
+Requires=dell-bios-fan-control.service
+
+[Service]
+Type=simple
+ExecStartPre=/bin/sleep 2
+ExecStart=/usr/local/sbin/fan-control.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

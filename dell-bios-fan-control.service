@@ -1,0 +1,13 @@
+[Unit]
+Description=Disable Dell BIOS fan control
+DefaultDependencies=no
+After=sysinit.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/dell-bios-fan-control 0
+RemainAfterExit=yes
+ExecStop=/usr/local/sbin/dell-bios-fan-control 1
+
+[Install]
+WantedBy=multi-user.target
