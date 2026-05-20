@@ -113,7 +113,7 @@ set_fan_speed() {
     if [[ "$speed" -ne "$CURRENT_SPEED" ]]; then
         local left_arg=$(( LEFT_FAN ? speed : 0 ))
         local right_arg=$(( RIGHT_FAN ? speed : 0 ))
-        $I8KFAN "$left_arg" "$right_arg"
+        $I8KFAN "$left_arg" "$right_arg" > /dev/null
         CURRENT_SPEED=$speed
         echo "INFO: Fan speed set to $speed at ${TEMP}°C."
     fi
@@ -129,7 +129,8 @@ main() {
     trap 'echo "INFO: Shutting down; setting fans to low."; set_fan_speed 1; exit 0' SIGTERM EXIT
 
     local fan_count=$(( LEFT_FAN + RIGHT_FAN ))
-    echo "INFO: Starting. Sensor: $(cat "$HWMON_PATH/name"). Fans: $fan_count. TEMP_LOW=${TEMP_LOW}°C TEMP_HIGH=${TEMP_HIGH}°C HYST_OFFSET=${HYST_OFFSET}°C POLL_INTERVAL=${POLL_INTERVAL}s."
+    echo "INFO: Starting. Sensor: $(cat "$HWMON_PATH/name"). Fans: $fan_count."
+    echo "INFO: Config: TEMP_LOW=${TEMP_LOW}°C, TEMP_HIGH=${TEMP_HIGH}°C, HYST_OFFSET=${HYST_OFFSET}°C, POLL_INTERVAL=${POLL_INTERVAL}s."
 
     local CURRENT_SPEED=-1
 
