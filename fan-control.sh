@@ -124,6 +124,9 @@ main() {
     find_temp_input
     find_fans
 
+    # set a safe speed on ext before BIOS takes back control
+    trap 'set_fan_speed 1; exit 0' SIGTERM EXIT
+
     local CURRENT_SPEED=-1
 
     while true; do
