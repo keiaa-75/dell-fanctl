@@ -115,6 +115,7 @@ set_fan_speed() {
         local right_arg=$(( RIGHT_FAN ? speed : 0 ))
         $I8KFAN "$left_arg" "$right_arg"
         CURRENT_SPEED=$speed
+        echo "INFO: Fan speed set to $speed at ${TEMP}°C."
     fi
 }
 
@@ -124,8 +125,11 @@ main() {
     find_temp_input
     find_fans
 
-    # set a safe speed on ext before BIOS takes back control
-    trap 'set_fan_speed 1; exit 0' SIGTERM EXIT
+    # set a safe speed on exit before BIOS takes back control
+    trap 'echo "INFO: Shutting down; setting fans to low."; set_fan_speed 1; exit 0' SIGTERM EXIT
+
+    local fan_count=$(( LEFT_FAN + RIGHT_FAN ))
+    echo "INFO: Starting. Sensor: $(cat "$HWMON_PATH/name"). Fans: $fan_count. TEMP_LOW=${TEMP_LOW}°C TEMP_HIGH=${TEMP_HIGH}°C HYST_OFFSET=${HYST_OFFSET}°C POLL_INTERVAL=${POLL_INTERVAL}s."
 
     local CURRENT_SPEED=-1
 
