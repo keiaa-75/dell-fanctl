@@ -11,6 +11,8 @@ FANCTL_CONF=/usr/local/etc/dell-fanctl.conf
 [[ -f "$FANCTL_CONF" ]] && source "$FANCTL_CONF"
 
 check_deps() {
+    # i8kfan is used to set fan speeds
+    # dell_smm_hwmon exposes the interface
     I8KFAN=$(command -v i8kfan) || { echo "ERROR: i8kfan not found."; exit 1; }
     lsmod | grep -q dell_smm_hwmon || { echo "ERROR: dell_smm_hwmon not loaded."; exit 1; }
 }
@@ -22,9 +24,15 @@ find_temp_input() {
         name=$(cat "$hwmon/name" 2>/dev/null)
 
         case "$name" in
-            coretemp|dell_smm)
+            coretemp)
+                # coretemp is preferred
+                # no need to look further
                 HWMON_PATH="$hwmon"
                 return ;;
+            dell_smm)
+                # acceptable fallback
+                # keep looping in case coretemp appears later
+                HWMON_PATH="$hwmon" ;;
         esac
     done
 
@@ -33,12 +41,15 @@ find_temp_input() {
 
 find_fans() {
     local left right
+    # i8kfan outputs two values
+    # absent fans are reported as -1
     read -r left right < <($I8KFAN)
     LEFT_FAN=$(( left != -1 ))
     RIGHT_FAN=$(( right != -1 ))
 }
 
 get_temp () {
+    # take highest reading across all temp inputs under chosen hwmon
     TEMP=$(cat "$HWMON_PATH"/temp*_input 2>/dev/null | sort -n | tail -1)
     TEMP=$(( TEMP / 1000 ))
 }
@@ -46,6 +57,7 @@ get_temp () {
 set_fan_speed() {
     local speed=$1
 
+    # only issue command if speed is actually changing
     if [[ "$speed" -ne "$CURRENT_SPEED" ]]; then
         local left_arg=$(( LEFT_FAN ? speed : 0 ))
         local right_arg=$(( RIGHT_FAN ? speed : 0 ))
