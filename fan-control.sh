@@ -1,14 +1,51 @@
 #!/usr/bin/env bash
 
-# Script defaults
+# script defaults
 TEMP_LOW=20
 TEMP_HIGH=55
 HYST_OFFSET=10
 POLL_INTERVAL=5
 
-# Fetch custom config, if any
+# fetch custom config, if any
 FANCTL_CONF=/usr/local/etc/dell-fanctl.conf
 [[ -f "$FANCTL_CONF" ]] && source "$FANCTL_CONF"
+
+validate_config() {
+    local ok=1
+
+    # ensure all values are integers
+    for var in TEMP_LOW TEMP_HIGH HYST_OFFSET POLL_INTERVAL; do
+        if ! [[ "${!var}" =~ ^-?[0-9]+$ ]]; then
+            echo "ERROR: $var must be an integer (got: '${!var}')."
+            ok=0
+        fi
+    done
+
+    # bail early if any are non-numeric; further checks would be meaningless
+    [[ "$ok" -eq 1 ]] || exit 1
+
+    if [[ "$TEMP_LOW" -ge "$TEMP_HIGH" ]]; then
+        echo "ERROR: TEMP_LOW ($TEMP_LOW) must be less than TEMP_HIGH ($TEMP_HIGH)."
+        ok=0
+    fi
+
+    if [[ "$HYST_OFFSET" -le 0 ]]; then
+        echo "ERROR: HYST_OFFSET must be greater than 0 (got: $HYST_OFFSET)."
+        ok=0
+    fi
+
+    if [[ "$(( TEMP_LOW - HYST_OFFSET ))" -lt 0 ]]; then
+        echo "ERROR: TEMP_LOW - HYST_OFFSET must be >= 0 (got: $(( TEMP_LOW - HYST_OFFSET )))."
+        ok=0
+    fi
+
+    if [[ "$POLL_INTERVAL" -le 0 ]]; then
+        echo "ERROR: POLL_INTERVAL must be greater than 0 (got: $POLL_INTERVAL)."
+        ok=0
+    fi
+
+    [[ "$ok" -eq 1 ]] || exit 1
+}
 
 check_deps() {
     # i8kfan is used to set fan speeds
@@ -36,7 +73,7 @@ find_temp_input() {
         esac
     done
 
-    echo "ERROR: No suitable temperature sensor found."; exit 1
+    [[ -n "$HWMON_PATH" ]] || { echo "ERROR: No suitable temperature sensor found."; exit 1; }
 }
 
 find_fans() {
@@ -48,10 +85,25 @@ find_fans() {
     RIGHT_FAN=$(( right != -1 ))
 }
 
-get_temp () {
-    # take highest reading across all temp inputs under chosen hwmon
-    TEMP=$(cat "$HWMON_PATH"/temp*_input 2>/dev/null | sort -n | tail -1)
-    TEMP=$(( TEMP / 1000 ))
+get_temp() {
+    local raw
+    raw=$(cat "$HWMON_PATH"/temp*_input 2>/dev/null | sort -n | tail -1)
+
+    # validate the reading before using it
+    if ! [[ "$raw" =~ ^[0-9]+$ ]]; then
+        echo "WARNING: Could not read temperature; skipping iteration."
+        return 1
+    fi
+
+    local celsius=$(( raw / 1000 ))
+
+    # sanity check: reject implausible values
+    if [[ "$celsius" -lt 0 || "$celsius" -gt 105 ]]; then
+        echo "WARNING: Implausible temperature reading (${celsius}°C); skipping iteration."
+        return 1
+    fi
+
+    TEMP=$celsius
 }
 
 set_fan_speed() {
@@ -67,6 +119,7 @@ set_fan_speed() {
 }
 
 main() {
+    validate_config
     check_deps
     find_temp_input
     find_fans
@@ -74,12 +127,13 @@ main() {
     local CURRENT_SPEED=-1
 
     while true; do
-        get_temp
-
-        if [[ "$TEMP" -ge "$TEMP_HIGH" ]]; then set_fan_speed 2
-        elif [[ "$TEMP" -lt "$(( TEMP_HIGH - HYST_OFFSET ))" && "$CURRENT_SPEED" - eq 2]]; then set_fan_speed 1
-        elif [[ "$TEMP" -ge "$TEMP_LOW" && "$CURRENT_SPEED" -lt 1 ]]; then set_fan_speed 1
-        elif [[ "$TEMP" -lt "$(( TEMP_LOW - HYST_OFFSET ))" && "$CURRENT_SPEED" - eq 1]]; then set_fan_speed 0
+        # skip fan control for this iteration on a bad temperature read
+        if get_temp; then
+            if [[ "$TEMP" -ge "$TEMP_HIGH" ]];                                                        then set_fan_speed 2
+            elif [[ "$TEMP" -lt "$(( TEMP_HIGH - HYST_OFFSET ))" && "$CURRENT_SPEED" -eq 2 ]];        then set_fan_speed 1
+            elif [[ "$TEMP" -ge "$TEMP_LOW" && "$CURRENT_SPEED" -lt 1 ]];                             then set_fan_speed 1
+            elif [[ "$TEMP" -lt "$(( TEMP_LOW - HYST_OFFSET ))" && "$CURRENT_SPEED" -eq 1 ]];         then set_fan_speed 0
+            fi
         fi
 
         sleep "$POLL_INTERVAL"
