@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 
+# Script defaults
 TEMP_LOW=20
 TEMP_HIGH=55
 HYST_OFFSET=10
 POLL_INTERVAL=5
+
+# Fetch custom config, if any
+FANCTL_CONF=/usr/local/etc/dell-fanctl.conf
+[[ -f "$FANCTL_CONF" ]] && source "$FANCTL_CONF"
 
 check_deps() {
     I8KFAN=$(command -v i8kfan) || { echo "ERROR: i8kfan not found."; exit 1; }

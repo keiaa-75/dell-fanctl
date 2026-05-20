@@ -41,7 +41,12 @@ sudo cp dell-bios-fan-control.service /etc/systemd/system/
 sudo cp i8kfan-init.service /etc/systemd/system/
 ```
 
-4. Enable the services:
+4. Optionally, copy and edit the config file to customize behavior:
+```bash
+sudo cp dell-fanctl.conf /usr/local/etc/dell-fanctl.conf
+```
+
+5. Enable the services:
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl disable i8kmon
@@ -55,7 +60,7 @@ sudo systemctl start i8kfan-init
 
 ## Configuration
 
-Edit the thresholds at the top of `fan-control.sh`:
+To customize behavior, edit `/usr/local/etc/dell-fanctl.conf`. The script falls back to built-in defaults if the file is absent, so this is optional.
 
 ```bash
 TEMP_LOW=20     # fan runs at low speed above this (°C)
@@ -63,6 +68,8 @@ TEMP_HIGH=75    # fan runs at max above this (°C)
 HYST_OFFSET=10  # how far temp must drop before stepping down
 POLL_INTERVAL=5 # how often to check temperature (seconds)
 ```
+
+Fan speed steps down with hysteresis: it won't drop from max to low until the temperature falls `HYST_OFFSET` degrees below `TEMP_HIGH`, and won't turn off entirely until it falls `HYST_OFFSET` degrees below `TEMP_LOW`.
 
 ## Notes
 
