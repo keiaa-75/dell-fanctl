@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 TEMP_LOW=20
 TEMP_HIGH=55
-TEMP_HIGH_HYST=40
+HYST_OFFSET=10
 POLL_INTERVAL=5
 
 check_deps() {
@@ -59,10 +59,10 @@ main() {
     while true; do
         get_temp
 
-        if [[ "$TEMP" -ge "$TEMP_HIGH" ]];                                      then set_fan_speed 2
-        elif [[ "$TEMP" -lt "$TEMP_HIGH_HYST" && "$CURRENT_SPEED" -eq 2 ]];     then set_fan_speed 1
-        elif [[ "$TEMP" -ge "$TEMP_LOW" && "$CURRENT_SPEED" -lt 1 ]];           then set_fan_speed 1
-        elif [[ "$TEMP" -lt "$TEMP_LOW" ]];                                     then set_fan_speed 0
+        if [[ "$TEMP" -ge "$TEMP_HIGH" ]]; then set_fan_speed 2
+        elif [[ "$TEMP" -lt "$(( TEMP_HIGH - HYST_OFFSET ))" && "$CURRENT_SPEED" - eq 2]]; then set_fan_speed 1
+        elif [[ "$TEMP" -ge "$TEMP_LOW" && "$CURRENT_SPEED" -lt 1 ]]; then set_fan_speed 1
+        elif [[ "$TEMP" -lt "$(( TEMP_LOW - HYST_OFFSET ))" && "$CURRENT_SPEED" - eq 1]]; then set_fan_speed 0
         fi
 
         sleep "$POLL_INTERVAL"
