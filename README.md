@@ -19,43 +19,27 @@ This project takes a simpler approach: disable BIOS fan control at boot, then ru
 
 ## Installation
 
-1. Build and install `dell-bios-fan-control`:
+1. Install dependencies:
 ```bash
-git clone https://github.com/TomFreudenberg/dell-bios-fan-control.git
-cd dell-bios-fan-control
+sudo apt install i8kutils make git
+```
+
+2. Build and install:
+```bash
 make
-sudo cp dell-bios-fan-control /usr/local/sbin/
+sudo make install
 ```
 
-2. Install i8kutils:
+You may run `make help` for details on available targets and configurable variables.
+
+3. Optionally, edit the config file to customize behavior:
 ```bash
-sudo apt install i8kutils
+sudo nano /usr/local/etc/dell-fanctl.conf
 ```
 
-3. Copy the files:
+4. Enable and start the services:
 ```bash
-sudo cp fan-control.sh /usr/local/sbin/
-sudo chmod +x /usr/local/sbin/fan-control.sh
-
-sudo cp dell-bios-fan-control.service /etc/systemd/system/
-sudo cp i8kfan-init.service /etc/systemd/system/
-```
-
-4. Optionally, copy and edit the config file to customize behavior:
-```bash
-sudo cp dell-fanctl.conf /usr/local/etc/dell-fanctl.conf
-```
-
-5. Enable the services:
-```bash
-sudo systemctl daemon-reload
-sudo systemctl disable i8kmon
-
-sudo systemctl enable dell-bios-fan-control
-sudo systemctl enable i8kfan-init
-
-sudo systemctl start dell-bios-fan-control
-sudo systemctl start i8kfan-init
+sudo make enable
 ```
 
 ## Configuration
