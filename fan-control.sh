@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 
 # script defaults
-TEMP_LOW=20
-TEMP_HIGH=55
-HYST_OFFSET=10
-POLL_INTERVAL=5
+set_defaults() {
+    TEMP_LOW=20
+    TEMP_HIGH=55
+    HYST_OFFSET=10
+    POLL_INTERVAL=5
+}
+
+set_defaults
 
 # fetch custom config, if any
 FANCTL_CONF=/usr/local/etc/dell-fanctl.conf
@@ -15,17 +19,6 @@ source "$FANCTL_LIB/parse-config.sh" || { echo "ERROR: Could not load $FANCTL_LI
 
 validate_config() {
     local ok=1
-
-    # ensure all values are integers
-    for var in TEMP_LOW TEMP_HIGH HYST_OFFSET POLL_INTERVAL; do
-        if ! [[ "${!var}" =~ ^-?[0-9]+$ ]]; then
-            echo "ERROR: $var must be an integer (got: '${!var}')."
-            ok=0
-        fi
-    done
-
-    # bail early if any are non-numeric; further checks would be meaningless
-    [[ "$ok" -eq 1 ]] || exit 1
 
     if [[ "$TEMP_LOW" -ge "$TEMP_HIGH" ]]; then
         echo "ERROR: TEMP_LOW ($TEMP_LOW) must be less than TEMP_HIGH ($TEMP_HIGH)."
@@ -47,7 +40,7 @@ validate_config() {
         ok=0
     fi
 
-    [[ "$ok" -eq 1 ]] || exit 1
+    [[ "$ok" -eq 1 ]]
 }
 
 check_deps() {
@@ -123,7 +116,11 @@ set_fan_speed() {
 }
 
 main() {
-    validate_config
+    if ! validate_config; then
+        echo "WARNING: Invalid config; using defaults."
+        set_defaults
+    fi
+
     check_deps
     find_temp_input
     find_fans
