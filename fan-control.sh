@@ -115,6 +115,11 @@ set_fan_speed() {
     fi
 }
 
+cleanup() {
+    echo "INFO: Shutting down; setting fans to high."
+    set_fan_speed 2
+}
+
 main() {
     if ! validate_config; then
         echo "WARNING: Invalid config; using defaults."
@@ -125,8 +130,11 @@ main() {
     find_temp_input
     find_fans
 
-    # set a safe speed on exit before BIOS takes back control
-    trap 'echo "INFO: Shutting down; setting fans to low."; set_fan_speed 1; exit 0' SIGTERM EXIT
+    # BIOS fan control stays off after the script stops,
+    # so leave the fans at high to stay safe under any load
+    # SIGTERM only exits; the EXIT trap then runs cleanup once
+    trap cleanup EXIT
+    trap 'exit 0' SIGTERM
 
     local fan_count=$(( LEFT_FAN + RIGHT_FAN ))
     echo "INFO: Starting. Sensor: $(cat "$HWMON_PATH/name"). Fans: $fan_count."
