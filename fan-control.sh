@@ -152,7 +152,10 @@ main() {
             fi
         fi
 
-        sleep "$POLL_INTERVAL"
+        # run sleep in the background and wait for it,
+        # so a SIGTERM is handled right away instead of after the sleep
+        sleep "$POLL_INTERVAL" &
+        wait$!
     done
 }
 
