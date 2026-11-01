@@ -20,12 +20,12 @@ $(DBFC_BIN):
 
 install: all
 	install -Dm755 $(DBFC_BIN) $(DESTDIR)$(SBINDIR)/dell-bios-fan-control
-	install -Dm755 fan-control.sh $(DESTDIR)$(SBINDIR)/fan-control.sh
-	install -Dm644 parse-config.sh $(DESTDIR)$(LIBDIR)/parse-config.sh
+	install -Dm755 src/fan-control.sh $(DESTDIR)$(SBINDIR)/fan-control.sh
+	install -Dm644 lib/parse-config.sh $(DESTDIR)$(LIBDIR)/parse-config.sh
 	install -Dm644 services/dell-bios-fan-control.service $(DESTDIR)$(SYSTEMDDIR)/dell-bios-fan-control.service
 	install -Dm644 services/i8kfan-init.service $(DESTDIR)$(SYSTEMDDIR)/i8kfan-init.service
 	@if [ ! -f "$(DESTDIR)$(SYSCONFDIR)/dell-fanctl.conf" ]; then \
-		install -Dm644 dell-fanctl.conf $(DESTDIR)$(SYSCONFDIR)/dell-fanctl.conf; \
+		install -Dm644 config/dell-fanctl.conf $(DESTDIR)$(SYSCONFDIR)/dell-fanctl.conf; \
 	fi
 	@[ -z "$(DESTDIR)" ] && systemctl daemon-reload || true
 
