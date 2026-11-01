@@ -1,6 +1,7 @@
 PREFIX ?= /usr/local
 SBINDIR ?= $(PREFIX)/sbin
 SYSCONFDIR ?= $(PREFIX)/etc
+LIBDIR ?= $(PREFIX)/lib/dell-fanctl
 SYSTEMDDIR ?= /etc/systemd/system
 
 DBFC_DIR = dell-bios-fan-control
@@ -20,6 +21,7 @@ $(DBFC_BIN):
 install: all
 	install -Dm755 $(DBFC_BIN) $(DESTDIR)$(SBINDIR)/dell-bios-fan-control
 	install -Dm755 fan-control.sh $(DESTDIR)$(SBINDIR)/fan-control.sh
+	install -Dm644 parse-config.sh $(DESTDIR)$(LIBDIR)/parse-config.sh
 	install -Dm644 services/dell-bios-fan-control.service $(DESTDIR)$(SYSTEMDDIR)/dell-bios-fan-control.service
 	install -Dm644 services/i8kfan-init.service $(DESTDIR)$(SYSTEMDDIR)/i8kfan-init.service
 	@if [ ! -f "$(DESTDIR)$(SYSCONFDIR)/dell-fanctl.conf" ]; then \
@@ -30,6 +32,8 @@ install: all
 uninstall: disable
 	rm -f $(DESTDIR)$(SBINDIR)/dell-bios-fan-control
 	rm -f $(DESTDIR)$(SBINDIR)/fan-control.sh
+	rm -f $(DESTDIR)$(LIBDIR)/parse-config.sh
+	rmdir $(DESTDIR)$(LIBDIR) 2>/dev/null || true
 	rm -f $(DESTDIR)$(SYSTEMDDIR)/dell-bios-fan-control.service
 	rm -f $(DESTDIR)$(SYSTEMDDIR)/i8kfan-init.service
 	# Note: $(SYSCONFDIR)/dell-fanctl.conf is intentionally preserved to retain user config.
@@ -63,5 +67,6 @@ help:
 	@echo "  PREFIX=$(PREFIX)"
 	@echo "  SBINDIR=$(SBINDIR)"
 	@echo "  SYSCONFDIR=$(SYSCONFDIR)"
+	@echo "  LIBDIR=$(LIBDIR)"
 	@echo "  SYSTEMDDIR=$(SYSTEMDDIR)"
 	@echo "  DESTDIR=$(DESTDIR)"

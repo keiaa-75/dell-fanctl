@@ -8,7 +8,10 @@ POLL_INTERVAL=5
 
 # fetch custom config, if any
 FANCTL_CONF=/usr/local/etc/dell-fanctl.conf
-[[ -f "$FANCTL_CONF" ]] && source "$FANCTL_CONF"
+FANCTL_LIB=/usr/local/lib/dell-fanctl
+
+source "$FANCTL_LIB/parse-config.sh" || { echo "ERROR: Could not load $FANCTL_LIB/parse-config.sh."; exit 1; }
+[[ -f "$FANCTL_CONF" ]] && parse_config "$FANCTL_CONF" TEMP_LOW TEMP_HIGH HYST_OFFSET POLL_INTERVAL
 
 validate_config() {
     local ok=1
