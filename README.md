@@ -48,7 +48,7 @@ To customize behavior, edit `/usr/local/etc/dell-fanctl.conf`. The script falls 
 
 ```bash
 TEMP_LOW=20     # fan runs at low speed above this (°C)
-TEMP_HIGH=75    # fan runs at max above this (°C)
+TEMP_HIGH=55    # fan runs at max above this (°C)
 HYST_OFFSET=10  # how far temp must drop before stepping down
 POLL_INTERVAL=5 # how often to check temperature (seconds)
 ```
