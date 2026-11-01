@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
-FANCTL_CONF=/usr/local/etc/dell-fanctl.conf
-FANCTL_LIB=/usr/local/lib/dell-fanctl
+# paths can be overrided, e.g. by tests
+FANCTL_CONF=${FANCTL_CONF:-/usr/local/etc/dell-fanctl.conf}
+FANCTL_LIB=${FANCTL_LIB:-/usr/local/lib/dell-fanctl}
+HWMON_ROOT=${HWMON_ROOT:-/sys/class/hwmon}
 
 source "$FANCTL_LIB/parse-config.sh" || { echo "ERROR: Could not load $FANCTL_LIB/parse-config.sh."; exit 1; }
 source "$FANCTL_LIB/config.sh" || { echo "ERROR: Could not load $FANCTL_LIB/config.sh."; exit 1; }
@@ -16,7 +18,7 @@ check_deps() {
 find_temp_input() {
     local hwmon name
 
-    for hwmon in /sys/class/hwmon/hwmon*; do
+    for hwmon in "$HWMON_ROOT"/hwmon*; do
         name=$(cat "$hwmon/name" 2>/dev/null)
 
         case "$name" in
@@ -119,4 +121,7 @@ main() {
     done
 }
 
-main
+# run only when executed, not when sourced by tests
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main
+fi
