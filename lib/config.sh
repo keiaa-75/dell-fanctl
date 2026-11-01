@@ -4,6 +4,11 @@
 
 CONFIG_KEYS=(TEMP_LOW TEMP_HIGH HYST_OFFSET POLL_INTERVAL)
 
+# upper limits; higher values would let the CPU run hotter
+# or let it heat up for longer before the fans react
+MAX_TEMP_HIGH=85
+MAX_POLL_INTERVAL=10
+
 set_defaults() {
 	TEMP_LOW=20
 	TEMP_HIGH=55
@@ -17,6 +22,11 @@ validate_config() {
     if [[ "$TEMP_LOW" -ge "$TEMP_HIGH" ]]; then
         echo "ERROR: TEMP_LOW ($TEMP_LOW) must be less than TEMP_HIGH ($TEMP_HIGH)."
         ok=0
+    fi
+
+    if [[ "$TEMP_HIGH" -gt "$MAX_TEMP_HIGH" ]]; then
+    	echo "ERROR: TEMP_HIGH must be at most ${MAX_TEMP_HIGH}°C (got: $TEMP_HIGH)."
+    	ok=0
     fi
 
     if [[ "$HYST_OFFSET" -le 0 ]]; then
@@ -34,6 +44,11 @@ validate_config() {
         ok=0
     fi
 
+    if [[ "$POLL_INTERVAL" -gt "$MAX_POLL_INTERVAL" ]]; then
+  		echo "ERROR: POLL_INTERVAL must be at most ${MAX_POLL_INTERVAL}s (got: $POLL_INTERVAL)."
+     	ok=0
+ 	fi
+ 	
     [[ "$ok" -eq 1 ]]
 }
 
