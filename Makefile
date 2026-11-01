@@ -19,11 +19,15 @@ $(DBFC_BIN):
 	$(MAKE) -C $(DBFC_DIR)
 
 install: all
+	@# remove the pre-rename loop so it can't run alongside dell-fanctl
+	@[ -z "$(DESTDIR)" ] && systemctl disable --now i8kfan-init 2>/dev/null || true
+	rm -f $(DESTDIR)$(SBINDIR)/fan-control.sh
+	rm -f $(DESTDIR)$(SYSTEMDDIR)/i8kfan-init.service
 	install -Dm755 $(DBFC_BIN) $(DESTDIR)$(SBINDIR)/dell-bios-fan-control
-	install -Dm755 src/fan-control.sh $(DESTDIR)$(SBINDIR)/fan-control.sh
+	install -Dm755 src/dell-fanctl $(DESTDIR)$(SBINDIR)/dell-fanctl
 	install -Dm644 lib/parse-config.sh $(DESTDIR)$(LIBDIR)/parse-config.sh
 	install -Dm644 services/dell-bios-fan-control.service $(DESTDIR)$(SYSTEMDDIR)/dell-bios-fan-control.service
-	install -Dm644 services/i8kfan-init.service $(DESTDIR)$(SYSTEMDDIR)/i8kfan-init.service
+	install -Dm644 services/dell-fanctl.service $(DESTDIR)$(SYSTEMDDIR)/dell-fanctl.service
 	@if [ ! -f "$(DESTDIR)$(SYSCONFDIR)/dell-fanctl.conf" ]; then \
 		install -Dm644 config/dell-fanctl.conf $(DESTDIR)$(SYSCONFDIR)/dell-fanctl.conf; \
 	fi
@@ -31,11 +35,11 @@ install: all
 
 uninstall: disable
 	rm -f $(DESTDIR)$(SBINDIR)/dell-bios-fan-control
-	rm -f $(DESTDIR)$(SBINDIR)/fan-control.sh
+	rm -f $(DESTDIR)$(SBINDIR)/dell-fanctl
 	rm -f $(DESTDIR)$(LIBDIR)/parse-config.sh
 	rmdir $(DESTDIR)$(LIBDIR) 2>/dev/null || true
 	rm -f $(DESTDIR)$(SYSTEMDDIR)/dell-bios-fan-control.service
-	rm -f $(DESTDIR)$(SYSTEMDDIR)/i8kfan-init.service
+	rm -f $(DESTDIR)$(SYSTEMDDIR)/dell-fanctl.service
 	# Note: $(SYSCONFDIR)/dell-fanctl.conf is intentionally preserved to retain user config.
 	# Remove it manually if a clean uninstall is needed.
 	@[ -z "$(DESTDIR)" ] && systemctl daemon-reload || true
@@ -44,11 +48,11 @@ enable:
 	@[ -z "$(DESTDIR)" ] || { echo "ERROR: enable target should not be used with DESTDIR set"; exit 1; }
 	systemctl disable i8kmon 2>/dev/null || true
 	systemctl enable --now dell-bios-fan-control
-	systemctl enable --now i8kfan-init
+	systemctl enable --now dell-fanctl
 
 disable:
 	@[ -z "$(DESTDIR)" ] || { echo "ERROR: disable target should not be used with DESTDIR set"; exit 1; }
-	systemctl disable --now i8kfan-init 2>/dev/null || true
+	systemctl disable --now dell-fanctl 2>/dev/null || true
 	systemctl disable --now dell-bios-fan-control 2>/dev/null || true
 
 clean:
