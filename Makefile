@@ -26,6 +26,7 @@ install: all
 	install -Dm755 $(DBFC_BIN) $(DESTDIR)$(SBINDIR)/dell-bios-fan-control
 	install -Dm755 src/dell-fanctl $(DESTDIR)$(SBINDIR)/dell-fanctl
 	install -Dm644 lib/parse-config.sh $(DESTDIR)$(LIBDIR)/parse-config.sh
+	install -Dm644 lib/config.sh $(DESTDIR)$(LIBDIR)/config.sh
 	install -Dm644 services/dell-bios-fan-control.service $(DESTDIR)$(SYSTEMDDIR)/dell-bios-fan-control.service
 	install -Dm644 services/dell-fanctl.service $(DESTDIR)$(SYSTEMDDIR)/dell-fanctl.service
 	@if [ ! -f "$(DESTDIR)$(SYSCONFDIR)/dell-fanctl.conf" ]; then \
@@ -37,6 +38,7 @@ uninstall: disable
 	rm -f $(DESTDIR)$(SBINDIR)/dell-bios-fan-control
 	rm -f $(DESTDIR)$(SBINDIR)/dell-fanctl
 	rm -f $(DESTDIR)$(LIBDIR)/parse-config.sh
+	rm -f $(DESTDIR)$(LIBDIR)/config.sh
 	rmdir $(DESTDIR)$(LIBDIR) 2>/dev/null || true
 	rm -f $(DESTDIR)$(SYSTEMDDIR)/dell-bios-fan-control.service
 	rm -f $(DESTDIR)$(SYSTEMDDIR)/dell-fanctl.service

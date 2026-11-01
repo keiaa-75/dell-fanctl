@@ -1,47 +1,10 @@
 #!/usr/bin/env bash
 
-# script defaults
-set_defaults() {
-    TEMP_LOW=20
-    TEMP_HIGH=55
-    HYST_OFFSET=10
-    POLL_INTERVAL=5
-}
-
-set_defaults
-
-# fetch custom config, if any
 FANCTL_CONF=/usr/local/etc/dell-fanctl.conf
 FANCTL_LIB=/usr/local/lib/dell-fanctl
 
 source "$FANCTL_LIB/parse-config.sh" || { echo "ERROR: Could not load $FANCTL_LIB/parse-config.sh."; exit 1; }
-[[ -f "$FANCTL_CONF" ]] && parse_config "$FANCTL_CONF" TEMP_LOW TEMP_HIGH HYST_OFFSET POLL_INTERVAL
-
-validate_config() {
-    local ok=1
-
-    if [[ "$TEMP_LOW" -ge "$TEMP_HIGH" ]]; then
-        echo "ERROR: TEMP_LOW ($TEMP_LOW) must be less than TEMP_HIGH ($TEMP_HIGH)."
-        ok=0
-    fi
-
-    if [[ "$HYST_OFFSET" -le 0 ]]; then
-        echo "ERROR: HYST_OFFSET must be greater than 0 (got: $HYST_OFFSET)."
-        ok=0
-    fi
-
-    if [[ "$(( TEMP_LOW - HYST_OFFSET ))" -lt 0 ]]; then
-        echo "ERROR: TEMP_LOW - HYST_OFFSET must be >= 0 (got: $(( TEMP_LOW - HYST_OFFSET )))."
-        ok=0
-    fi
-
-    if [[ "$POLL_INTERVAL" -le 0 ]]; then
-        echo "ERROR: POLL_INTERVAL must be greater than 0 (got: $POLL_INTERVAL)."
-        ok=0
-    fi
-
-    [[ "$ok" -eq 1 ]]
-}
+source "$FANCTL_LIB/config.sh" || { echo "ERROR: Could not load $FANCTL_LIB/config.sh."; exit 1; }
 
 check_deps() {
     # i8kfan is used to set fan speeds
@@ -121,10 +84,7 @@ cleanup() {
 }
 
 main() {
-    if ! validate_config; then
-        echo "WARNING: Invalid config; using defaults."
-        set_defaults
-    fi
+    load_config "$FANCTL_CONF"
 
     check_deps
     find_temp_input
