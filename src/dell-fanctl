@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# paths can be overriden, e.g. by tests
+# paths can be overridden, e.g. by tests
 FANCTL_CONF=${FANCTL_CONF:-/usr/local/etc/dell-fanctl.conf}
 FANCTL_LIB=${FANCTL_LIB:-/usr/local/lib/dell-fanctl}
 HWMON_ROOT=${HWMON_ROOT:-/sys/class/hwmon}
@@ -80,6 +80,8 @@ next_speed() {
         echo 1
     elif [[ "$temp" -ge "$TEMP_LOW" && "$current" -lt 1 ]]; then
         echo 1
+    elif [[ "$current" -lt 0 ]]; then
+        echo 0
     elif [[ "$temp" -lt "$(( TEMP_LOW - HYST_OFFSET ))" && "$current" -eq 1 ]]; then
         echo 0
     else
