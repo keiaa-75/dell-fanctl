@@ -15,7 +15,7 @@ This project takes a simpler approach: disable BIOS fan control at boot, then ru
 - `dell-smm-hwmon` — kernel module that exposes the Dell SMM interface to userspace
 - [`dell-bios-fan-control`](https://github.com/TomFreudenberg/dell-bios-fan-control) — disables BIOS fan control at boot so the OS can take over
 - `i8kfan` (from `i8kutils`) — the actual command our script uses to set fan speeds
-- `dell-fanctl` — our loop that reads temperatures and decides what speed to set automatically
+- `dell-fanctld` — our loop that reads temperatures and decides what speed to set automatically
 
 ## Installation
 
@@ -50,6 +50,6 @@ See [`tests/README.md`](tests/README.md) for what the tests cover and how to wri
 ## Notes
 
 - If `i8kfan` returns `-1` for the left fan, your laptop likely only has one physical fan. This is normal.
-- If you use `i8kmon`, disable it. It will conflict with `dell-fanctl`.
+- If you use `i8kmon`, disable it. It will conflict with `dell-fanctld`.
 - You may opt to use `i8kmon`. However, this proved problematic for my case.
 - BIOS fan control is restored automatically when `dell-bios-fan-control.service` stops (e.g. disabled, on shutdown).

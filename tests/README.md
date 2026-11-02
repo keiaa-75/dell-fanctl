@@ -28,7 +28,7 @@ Each test prints 'ok' or 'not ok'. A failing test shows the line that failed and
 |---|---|---|
 | `parse-config.bats` | `lib/parse-config.sh` | Reading the config file: accepted lines, skipped lines, and lines that must never run as code |
 | `config.bats` | `lib/config.sh` | Defaults, limits, rules between settings, and falling back to the defaults |
-| `dell-fanctl.bats` | `src/dell-fanctl` | Fan speed decisions, sensor search, temperature readings, fan commands, and shutdown |
+| `dell-fanctld.bats` | `src/dell-fanctld` | Fan speed decisions, sensor search, temperature readings, fan commands, and shutdown |
 | `helpers.bash` | | Shared helpers, loaded with `load helpers` |
 | `fakes/` | | Fake `i8kfan` and `lsmod`; see [`fakes/README.md`](fakes/README.md) |
 
@@ -45,4 +45,4 @@ Each test prints 'ok' or 'not ok'. A failing test shows the line that failed and
 
 - Write temporary files only to `$BATS_TEST_TMPDIR`. `bats` deletes it after each test.
 - Use `run` when the code under test may exit, for example on an error, so the exit doesn't end the test. `run` puts the exit code in `status` and the output in `output`.
-- Tests that start the whole script must stop it again, as `dell-fanctl.bats` does with `start_script` and `stop_script`.
+- Tests that start the whole script must stop it again, as `dell-fanctld.bats` does with `start_script` and `stop_script`.

@@ -1,6 +1,6 @@
 # Test fakes
 
-Stand-ins for the hardware tools `dell-fanctl` uses, so the tests can run the script without touching real fans, sensors, or kernel modules.
+Stand-ins for the hardware tools `dell-fanctld` uses, so the tests can run the script without touching real fans, sensors, or kernel modules.
 
 ## How they are used
 

@@ -6,7 +6,7 @@ Requires=dell-bios-fan-control.service
 [Service]
 Type=simple
 ExecStartPre=/bin/sleep 2
-ExecStart=/usr/local/sbin/dell-fanctl
+ExecStart=/usr/local/sbin/dell-fanctld
 Restart=always
 
 [Install]

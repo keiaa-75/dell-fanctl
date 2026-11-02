@@ -1,12 +1,12 @@
 #!/usr/bin/env bats
-# Tests for src/dell-fanctl. Uses the fakes in tests/fakes only:
+# Tests for src/dell-fanctld. Uses the fakes in tests/fakes only:
 # no real fans, sensors or kernel modules are touched.
 
 load helpers
 
 setup() {
     use_fakes
-    SCRIPT="$BATS_TEST_DIRNAME/../src/dell-fanctl"
+    SCRIPT="$BATS_TEST_DIRNAME/../src/dell-fanctld"
     FANCTL_LIB="$BATS_TEST_DIRNAME/../lib"
     FANCTL_CONF="$BATS_TEST_TMPDIR/missing.conf"
     export FANCTL_LIB FANCTL_CONF
