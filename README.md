@@ -2,7 +2,7 @@
 
 A minimal, reliable fan control setup for Dell laptops on Linux, bypassing the broken BIOS fan control that keeps fans silent until relatively high temperatures.
 
-Tested on: Dell Latitude 5300. Likely works on other Dell laptops that use the `dell-smm-hwmon` (i8k) kernel module.
+Tested on: Latitude 5300 and Vostro 3468. Likely works on other Dell laptops that use the `dell-smm-hwmon` (i8k) kernel module.
 
 ## The Problem
 
@@ -19,28 +19,7 @@ This project takes a simpler approach: disable BIOS fan control at boot, then ru
 
 ## Installation
 
-1. Install dependencies:
-```bash
-sudo apt install i8kutils make git
-```
-
-2. Build and install:
-```bash
-make
-sudo make install
-```
-
-You may run `make help` for details on available targets and configurable variables.
-
-3. Optionally, edit the config file to customize behavior:
-```bash
-sudo nano /usr/local/etc/dell-fanctl.conf
-```
-
-4. Enable and start the services:
-```bash
-sudo make enable
-```
+The installer is being rewritten as a single `install.sh` that downloads and sets up everything. Until it lands, install from a release that still has a Makefile (v2.1.0 or earlier) by following the README in that release.
 
 ## Configuration
 
@@ -63,7 +42,7 @@ The tests use [bats](https://github.com/bats-core/bats-core) and never touch rea
 
 ```bash
 sudo apt install bats
-make test
+bats tests/
 ```
 
 See [`tests/README.md`](tests/README.md) for what the tests cover and how to write new ones.
