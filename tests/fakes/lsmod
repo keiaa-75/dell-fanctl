@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Fake lsmod for the tests.
+# Prints FAKE_LSMOD_OUTPUT, or dell_smm_hwmon if it isn't set.
+# Set FAKE_LSMOD_OUTPUT to an empty string to pretend the module isn't loaded.
+
+echo "${FAKE_LSMOD_OUTPUT-dell_smm_hwmon}"
