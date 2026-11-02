@@ -1,28 +1,24 @@
 #!/usr/bin/env bash
 
 # script defaults
-TEMP_LOW=20
-TEMP_HIGH=55
-HYST_OFFSET=10
-POLL_INTERVAL=5
+set_defaults() {
+    TEMP_LOW=20
+    TEMP_HIGH=55
+    HYST_OFFSET=10
+    POLL_INTERVAL=5
+}
+
+set_defaults
 
 # fetch custom config, if any
 FANCTL_CONF=/usr/local/etc/dell-fanctl.conf
-[[ -f "$FANCTL_CONF" ]] && source "$FANCTL_CONF"
+FANCTL_LIB=/usr/local/lib/dell-fanctl
+
+source "$FANCTL_LIB/parse-config.sh" || { echo "ERROR: Could not load $FANCTL_LIB/parse-config.sh."; exit 1; }
+[[ -f "$FANCTL_CONF" ]] && parse_config "$FANCTL_CONF" TEMP_LOW TEMP_HIGH HYST_OFFSET POLL_INTERVAL
 
 validate_config() {
     local ok=1
-
-    # ensure all values are integers
-    for var in TEMP_LOW TEMP_HIGH HYST_OFFSET POLL_INTERVAL; do
-        if ! [[ "${!var}" =~ ^-?[0-9]+$ ]]; then
-            echo "ERROR: $var must be an integer (got: '${!var}')."
-            ok=0
-        fi
-    done
-
-    # bail early if any are non-numeric; further checks would be meaningless
-    [[ "$ok" -eq 1 ]] || exit 1
 
     if [[ "$TEMP_LOW" -ge "$TEMP_HIGH" ]]; then
         echo "ERROR: TEMP_LOW ($TEMP_LOW) must be less than TEMP_HIGH ($TEMP_HIGH)."
@@ -44,7 +40,7 @@ validate_config() {
         ok=0
     fi
 
-    [[ "$ok" -eq 1 ]] || exit 1
+    [[ "$ok" -eq 1 ]]
 }
 
 check_deps() {
@@ -119,14 +115,26 @@ set_fan_speed() {
     fi
 }
 
+cleanup() {
+    echo "INFO: Shutting down; setting fans to high."
+    set_fan_speed 2
+}
+
 main() {
-    validate_config
+    if ! validate_config; then
+        echo "WARNING: Invalid config; using defaults."
+        set_defaults
+    fi
+
     check_deps
     find_temp_input
     find_fans
 
-    # set a safe speed on exit before BIOS takes back control
-    trap 'echo "INFO: Shutting down; setting fans to low."; set_fan_speed 1; exit 0' SIGTERM EXIT
+    # BIOS fan control stays off after the script stops,
+    # so leave the fans at high to stay safe under any load
+    # SIGTERM only exits; the EXIT trap then runs cleanup once
+    trap cleanup EXIT
+    trap 'exit 0' SIGTERM
 
     local fan_count=$(( LEFT_FAN + RIGHT_FAN ))
     echo "INFO: Starting. Sensor: $(cat "$HWMON_PATH/name"). Fans: $fan_count."
@@ -144,7 +152,10 @@ main() {
             fi
         fi
 
-        sleep "$POLL_INTERVAL"
+        # run sleep in the background and wait for it,
+        # so a SIGTERM is handled right away instead of after the sleep
+        sleep "$POLL_INTERVAL" &
+        wait $!
     done
 }
 
