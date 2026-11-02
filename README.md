@@ -57,6 +57,17 @@ Fan speed steps down with hysteresis: it won't drop from max to low until the te
 
 If any value is invalid or outside its limit, the script logs an error and uses the built-in defaults for all settings.
 
+## Development
+
+The tests use [bats](https://github.com/bats-core/bats-core) and never touch real fans, sensors or kernel modules, so they are safe to run on the laptop itself:
+
+```bash
+sudo apt install bats
+make test
+```
+
+See [`tests/README.md`](tests/README.md) for what the tests cover and how to write new ones.
+
 ## Notes
 
 - If `i8kfan` returns `-1` for the left fan, your laptop likely only has one physical fan. This is normal.
