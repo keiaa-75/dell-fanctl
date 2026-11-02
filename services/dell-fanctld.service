@@ -9,5 +9,9 @@ ExecStartPre=/bin/sleep 2
 ExecStart=/usr/local/sbin/dell-fanctld
 Restart=always
 
+# The loop needs about 4-8 MB. Above 20 MB, the kernel reclaims memory
+# and slows the service down. MemoryHigh never kills the service.
+MemoryHigh=20M
+
 [Install]
 WantedBy=multi-user.target
