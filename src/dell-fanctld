@@ -47,11 +47,19 @@ find_fans() {
 }
 
 get_temp() {
-    local raw
-    raw=$(cat "$HWMON_PATH"/temp*_input 2>/dev/null | sort -n | tail -1)
+    local file reading raw=""
 
-    # validate the reading before using it
-    if ! [[ "$raw" =~ ^[0-9]+$ ]]; then
+    for file in "$HWMON_PATH"/temp*_input; do
+        # skip files that can't be read or don't hold a whole number
+        { read -r reading < "$file"; } 2> /dev/null || continue
+        [[ "$reading" =~ ^[0-9]+$ ]] || continue
+
+        if [[ -z "$raw" || "$reading" -gt "$raw" ]]; then
+            raw=$reading
+        fi
+    done
+
+    if [[ -z "$raw" ]]; then
         echo "WARNING: Could not read temperature; skipping iteration."
         return 1
     fi
@@ -75,17 +83,17 @@ next_speed() {
     local temp=$1 current=$2
 
     if [[ "$temp" -ge "$TEMP_HIGH" ]]; then
-        echo 2
+        NEXT_SPEED=2
     elif [[ "$temp" -lt "$(( TEMP_HIGH - HYST_OFFSET ))" && "$current" -eq 2 ]]; then
-        echo 1
+        NEXT_SPEED=1
     elif [[ "$temp" -ge "$TEMP_LOW" && "$current" -lt 1 ]]; then
-        echo 1
+        NEXT_SPEED=1
     elif [[ "$current" -lt 0 ]]; then
-        echo 0
+        NEXT_SPEED=0
     elif [[ "$temp" -lt "$(( TEMP_LOW - HYST_OFFSET ))" && "$current" -eq 1 ]]; then
-        echo 0
+        NEXT_SPEED=0
     else
-        echo "$current"
+        NEXT_SPEED=$current
     fi
 }
 
@@ -129,7 +137,8 @@ main() {
     while true; do
         # skip fan control for this iteration on a bad temperature read
         if get_temp; then
-            set_fan_speed "$(next_speed "$TEMP" "$CURRENT_SPEED")"
+            next_speed "$TEMP" "$CURRENT_SPEED"
+            set_fan_speed "$NEXT_SPEED"
         fi
 
         # run sleep in the background and wait for it,

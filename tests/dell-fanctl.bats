@@ -54,45 +54,51 @@ wait_for_fan_command() {
     return 1
 }
 
+# Prints the speed next_speed picks, so the tests can compare it.
+speed_for() {
+    next_speed "$1" "$2"
+    echo "$NEXT_SPEED"
+}
+
 # next_speed, with the defaults TEMP_LOW=20, TEMP_HIGH=55, HYST_OFFSET=10
 
 @test "reaching TEMP_HIGH sets high from any speed" {
-    expect_equal 2 "$(next_speed 55 0)"
-    expect_equal 2 "$(next_speed 55 1)"
-    expect_equal 2 "$(next_speed 55 2)"
+    expect_equal 2 "$(speed_for 55 0)"
+    expect_equal 2 "$(speed_for 55 1)"
+    expect_equal 2 "$(speed_for 55 2)"
 }
 
 @test "high stays high until HYST_OFFSET below TEMP_HIGH" {
-    expect_equal 2 "$(next_speed 54 2)"
-    expect_equal 2 "$(next_speed 45 2)"
+    expect_equal 2 "$(speed_for 54 2)"
+    expect_equal 2 "$(speed_for 45 2)"
 }
 
 @test "high drops to low once HYST_OFFSET below TEMP_HIGH" {
-    expect_equal 1 "$(next_speed 44 2)"
+    expect_equal 1 "$(speed_for 44 2)"
 }
 
 @test "reaching TEMP_LOW turns the fans on at low" {
-    expect_equal 1 "$(next_speed 20 0)"
-    expect_equal 1 "$(next_speed 54 0)"
+    expect_equal 1 "$(speed_for 20 0)"
+    expect_equal 1 "$(speed_for 54 0)"
 }
 
 @test "low stays low until HYST_OFFSET below TEMP_LOW" {
-    expect_equal 1 "$(next_speed 19 1)"
-    expect_equal 1 "$(next_speed 10 1)"
+    expect_equal 1 "$(speed_for 19 1)"
+    expect_equal 1 "$(speed_for 10 1)"
 }
 
 @test "low turns off once HYST_OFFSET below TEMP_LOW" {
-    expect_equal 0 "$(next_speed 9 1)"
+    expect_equal 0 "$(speed_for 9 1)"
 }
 
 @test "off stays off below TEMP_LOW" {
-    expect_equal 0 "$(next_speed 19 0)"
+    expect_equal 0 "$(speed_for 19 0)"
 }
 
 @test "first reading always picks a known speed" {
-    expect_equal 0 "$(next_speed 15 -1)"
-    expect_equal 1 "$(next_speed 30 -1)"
-    expect_equal 2 "$(next_speed 60 -1)"
+    expect_equal 0 "$(speed_for 15 -1)"
+    expect_equal 1 "$(speed_for 30 -1)"
+    expect_equal 2 "$(speed_for 60 -1)"
 }
 
 # sensor search
@@ -130,6 +136,13 @@ wait_for_fan_command() {
 
 @test "the hottest reading of the sensor is used" {
     add_sensor coretemp 45000 60000 52000
+    find_temp_input
+    get_temp
+    expect_equal 60 "$TEMP"
+}
+
+@test "bad readings are ignored when another reading is valid" {
+    add_sensor coretemp abc 60000 -5000
     find_temp_input
     get_temp
     expect_equal 60 "$TEMP"
