@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Fake i8kfan for the tests. Never touches real fans.
+#
+# Without arguments, prints the fan status like the real i8kfan:
+# FAKE_I8KFAN_STATUS, or "-1 1" (no left fan, right fan present).
+# With arguments, appends them as one line to FAKE_I8KFAN_LOG,
+# so a test can check which speeds were set.
+
+if [[ $# -eq 0 ]]; then
+    echo "${FAKE_I8KFAN_STATUS:-"-1 1"}"
+else
+    echo "$*" >> "$FAKE_I8KFAN_LOG"
+fi
