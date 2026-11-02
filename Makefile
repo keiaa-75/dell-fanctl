@@ -37,7 +37,7 @@ else
 SYSTEMCTL = :
 endif
 
-.PHONY: all install uninstall enable disable clean help \
+.PHONY: all install uninstall enable disable clean test help \
         remove-legacy install-bin install-lib install-services install-config \
         no-destdir
 
@@ -84,7 +84,7 @@ install-config:
 	[ -f "$(DESTDIR)$(SYSCONFDIR)/dell-fanctl.conf" ] || \
 		install -Dm644 config/dell-fanctl.conf $(DESTDIR)$(SYSCONFDIR)/dell-fanctl.conf
 
-		
+
 # ---------------------------------------------------------------------------
 # Uninstall (the config is kept; remove it by hand for a clean uninstall)
 # ---------------------------------------------------------------------------
@@ -116,6 +116,14 @@ no-destdir:
 	@[ -z "$(DESTDIR)" ] || { echo "ERROR: $(MAKECMDGOALS) cannot be used with DESTDIR set."; exit 1; }
 
 # ---------------------------------------------------------------------------
+# Tests (they never touch real fans; see tests/README.md)
+# ---------------------------------------------------------------------------
+
+test:
+	@command -v bats > /dev/null || { echo "ERROR: bats not found. Please install it to run the test suite."; exit 1; }
+	bats tests/
+
+# ---------------------------------------------------------------------------
 # Help
 # ---------------------------------------------------------------------------
 
@@ -127,6 +135,7 @@ help:
 	@echo "  enable     Enable and start the services"
 	@echo "  disable    Stop and disable the services"
 	@echo "  clean      Remove dell-bios-fan-control build files"
+	@echo "  test       Run the tests (needs bats)"
 	@echo ""
 	@echo "Variables:"
 	@echo "  PREFIX=$(PREFIX)"

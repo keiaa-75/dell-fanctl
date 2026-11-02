@@ -15,8 +15,10 @@ sudo apt install bats
 Then, from the repository root:
 
 ```bash
-bats tests/
+make test
 ```
+
+`make test` runs `bats tests/`, which you can also call directly, for example `bats tests/config.bats` to run a single file.
 
 Each test prints 'ok' or 'not ok'. A failing test shows the line that failed and, for value checks, the expected and actual value.
 
