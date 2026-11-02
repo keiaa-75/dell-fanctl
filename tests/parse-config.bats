@@ -1,6 +1,8 @@
 #!/usr/bin/env bats
 # Tests for lib/parse-config.sh. Uses temporary files only.
 
+load helpers
+
 setup() {
     source "$BATS_TEST_DIRNAME/../lib/parse-config.sh"
     CONF="$BATS_TEST_TMPDIR/test.conf"
@@ -11,23 +13,16 @@ setup() {
 # Writes each argument as one line of the test config, then parses it.
 # Everything the parser prints, including errors, goes into OUTPUT.
 parse() {
-    printf '%s
-' "$@" > "$CONF"
+    local line
+    for line in "$@"; do
+        echo "$line"
+    done > "$CONF"
     run_parser
 }
 
 run_parser() {
     parse_config "$CONF" TEMP_HIGH TEMP_LOW > "$BATS_TEST_TMPDIR/output" 2>&1
     OUTPUT=$(< "$BATS_TEST_TMPDIR/output")
-}
-
-# Fails the test and shows both values if they differ.
-expect_equal() {
-    if [[ "$2" != "$1" ]]; then
-        echo "expected: '$1'"
-        echo "got:      '$2'"
-        return 1
-    fi
 }
 
 # accepted values
